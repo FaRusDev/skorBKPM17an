@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Scoreboard - History Pertandingan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Graduate:wght@400;500;700;900&display=swap" rel="stylesheet" />
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+    <style>
+      body {
+        font-family: "Graduate", sans-serif;
+        background-color: #f4f4f5;
+        color: #18181b;
+        min-height: 100vh;
+      }
+      * {
+        transition: background-color 0.2s ease, color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+      }
+      .history-card {
+        animation: fade-in 0.3s ease-out;
+      }
+      @keyframes fade-in {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      .conn-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 9999px;
+        display: inline-block;
+        margin-right: 6px;
+      }
+    </style>
+  </head>
+  <body class="bg-[url(./assets/bbg.png)] bg-cover bg-fixed">
+    <header class="bg-white/90 backdrop-blur-sm border-b border-white/60">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 py-4 grid grid-cols-1 gap-4 md:grid-cols-3 md:items-center">
+        <div class="text-center md:text-left">
+          <p class="text-xs font-bold uppercase tracking-[0.3em] text-slate-400">Kementerian</p>
+          <h1 class="text-xl sm:text-2xl font-extrabold text-slate-800">History Pertandingan</h1>
+          <p class="text-sm text-slate-500">Daftar semua pertandingan yang sudah selesai</p>
+        </div>
+        <div class="flex justify-center">
+          <div class="rounded-2xl bg-white shadow-lg ring-1 ring-slate-200 px-5 py-3">
+            <img src="./assets/bkpm.png" alt="Logo BKPM" class="h-16 sm:h-20 object-contain" />
+          </div>
+        </div>
+        <div class="flex justify-center md:justify-end items-center text-xs sm:text-sm font-semibold text-slate-600">
+          <span class="conn-dot bg-gray-400" id="conn-dot"></span>
+          <span id="conn-text">Menghubungkan...</span>
+        </div>
+      </div>
+    </header>
+
+    <main class="mx-auto max-w-7xl px-4 sm:px-6 py-6">
+      <div id="empty-state" class="hidden rounded-3xl border border-dashed border-slate-300 bg-white/80 px-6 py-16 text-center shadow-sm">
+        <p class="text-2xl font-bold text-slate-500">Belum ada history pertandingan</p>
+        <p class="text-slate-400 mt-2">Riwayat akan muncul otomatis setelah panitia mengakhiri pertandingan.</p>
+      </div>
+
+      <div id="history-container" class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6"></div>
+    </main>
+
+    <script>
+      const firebaseConfig = {
+        apiKey: "AIzaSyA9rE3eh4H21_CJquRgJ13GQfWtyi4b3_g",
+        authDomain: "skor-basket-bkpm.firebaseapp.com",
+        databaseURL: "https://skor-basket-bkpm-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "skor-basket-bkpm",
+        storageBucket: "skor-basket-bkpm.firebasestorage.app",
+        messagingSenderId: "796797660486",
+        appId: "1:796797660486:web:3f475ab7584c096d4c8947",
+      }
+
+      firebase.initializeApp(firebaseConfig)
+      const db = firebase.database()
+      const historyRef = db.ref("history")
+      const historyContainer = document.getElementById("history-container")
+      const emptyState = document.getElementById("empty-state")
+
+      const toDateLabel = (timestamp) =>
+        new Intl.DateTimeFormat("id-ID", {
+          timeZone: "Asia/Jakarta",
+          weekday: "long",
+          day: "2-digit",
+          month: "long",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+        }).format(new Date(timestamp)) + " WIB"
+
+      const getWinner = (item) => {
+        const scoreA = item.scoreA ?? 0
+        const scoreB = item.scoreB ?? 0
+        if (scoreA > scoreB) return item.teamAName || "TIM A"
+        if (scoreB > scoreA) return item.teamBName || "TIM B"
+        return "Seri"
+      }
+
+      function renderHistory(items) {
+        historyContainer.innerHTML = ""
+
+        if (items.length === 0) {
+          emptyState.classList.remove("hidden")
+          return
+        }
+
+        emptyState.classList.add("hidden")
+
+        items.forEach((item) => {
+          const card = document.createElement("article")
+          card.className = "history-card overflow-hidden rounded-3xl bg-white/95 shadow-2xl ring-1 ring-slate-200"
+          card.innerHTML = `
+            <div class="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
+              <div>
+                <p class="text-xs font-bold uppercase tracking-[0.25em] text-slate-400">${item.sport || "-"}</p>
+                <h2 class="text-lg sm:text-xl font-extrabold text-slate-800 truncate">${item.teamAName || "TIM A"} vs ${item.teamBName || "TIM B"}</h2>
+              </div>
+              <div class="text-right">
+                <div class="text-xs font-semibold text-slate-400">${toDateLabel(item.finishedAt || Date.now())}</div>
+                <div class="text-xs font-bold ${getWinner(item) === "Seri" ? "text-slate-500" : "text-emerald-600"}">Pemenang: ${getWinner(item)}</div>
+              </div>
+            </div>
+            <div class="p-5">
+              <div class="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-3 items-stretch">
+                <div class="rounded-3xl bg-blue-600 p-4 text-center text-white shadow-lg">
+                  <div class="text-xs font-bold uppercase tracking-[0.2em] opacity-80">Tim A</div>
+                  <div class="mt-2 text-xl sm:text-2xl font-extrabold truncate">${item.teamAName || "TIM A"}</div>
+                  <div class="mt-4 text-5xl sm:text-6xl font-black leading-none">${item.scoreA ?? 0}</div>
+                </div>
+                <div class="flex items-center justify-center rounded-3xl bg-slate-50 px-5 py-4 text-center">
+                  <div>
+                    <div class="text-sm font-bold text-slate-500">Babak ${item.round || 1}</div>
+                    <div class="mt-2 text-3xl sm:text-4xl font-black text-slate-800">${item.scoreA ?? 0} - ${item.scoreB ?? 0}</div>
+                    <div class="mt-2 text-sm font-semibold text-slate-400">Skor akhir</div>
+                  </div>
+                </div>
+                <div class="rounded-3xl bg-emerald-600 p-4 text-center text-white shadow-lg">
+                  <div class="text-xs font-bold uppercase tracking-[0.2em] opacity-80">Tim B</div>
+                  <div class="mt-2 text-xl sm:text-2xl font-extrabold truncate">${item.teamBName || "TIM B"}</div>
+                  <div class="mt-4 text-5xl sm:text-6xl font-black leading-none">${item.scoreB ?? 0}</div>
+                </div>
+              </div>
+              <div class="mt-4 rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div><span class="font-bold text-slate-500">Panitia:</span> ${item.panitia || "-"}</div>
+                  <div><span class="font-bold text-slate-500">Tanggal:</span> ${toDateLabel(item.finishedAt || Date.now())}</div>
+                </div>
+              </div>
+            </div>
+          `
+          historyContainer.appendChild(card)
+        })
+      }
+
+      historyRef.orderByChild("finishedAt").on("value", (snap) => {
+        const items = []
+        snap.forEach((child) => items.push(child.val()))
+        items.sort((a, b) => (a.finishedAt || 0) - (b.finishedAt || 0))
+        renderHistory(items.reverse())
+      })
+
+      db.ref(".info/connected").on("value", (snap) => {
+        const dot = document.getElementById("conn-dot")
+        const text = document.getElementById("conn-text")
+        if (snap.val() === true) {
+          dot.className = "conn-dot bg-emerald-500"
+          text.textContent = "Terhubung (Live)"
+        } else {
+          dot.className = "conn-dot bg-red-500"
+          text.textContent = "Terputus"
+        }
+      })
+    </script>
+  </body>
+</html>
