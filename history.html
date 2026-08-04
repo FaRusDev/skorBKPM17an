@@ -46,7 +46,12 @@
         </div>
         <div class="flex justify-center">
           <div class="rounded-2xl bg-white shadow-lg ring-1 ring-slate-200 px-5 py-3">
-            <img src="./assets/bkpm.png" alt="Logo BKPM" class="h-16 sm:h-20 object-contain" />
+            <img
+              src="./assets/bkpm.png"
+              onerror="this.onerror=null;this.src='./assets/bkpm.jpg'"
+              alt="Logo BKPM"
+              class="h-16 sm:h-20 object-contain"
+            />
           </div>
         </div>
         <div class="flex justify-center md:justify-end items-center text-xs sm:text-sm font-semibold text-slate-600">
@@ -57,15 +62,29 @@
     </header>
 
     <main class="mx-auto max-w-7xl px-4 sm:px-6 py-6">
+      <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div class="rounded-2xl bg-white/90 px-4 py-2 shadow ring-1 ring-slate-200">
+          <span class="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">Total Pertandingan</span>
+          <span id="total-count" class="ml-2 text-lg font-extrabold text-slate-800">0</span>
+        </div>
+        <input
+          id="search-input"
+          type="text"
+          placeholder="Cari cabor / tim / panitia..."
+          class="w-full sm:w-72 rounded-2xl border border-slate-200 bg-white/90 px-4 py-2 text-sm shadow outline-none focus:ring-2 focus:ring-emerald-400"
+        />
+      </div>
+
       <div id="empty-state" class="hidden rounded-3xl border border-dashed border-slate-300 bg-white/80 px-6 py-16 text-center shadow-sm">
         <p class="text-2xl font-bold text-slate-500">Belum ada history pertandingan</p>
         <p class="text-slate-400 mt-2">Riwayat akan muncul otomatis setelah panitia mengakhiri pertandingan.</p>
       </div>
 
-      <div class="overflow-x-auto rounded-3xl border border-slate-200 bg-white/90 shadow-2xl">
+      <div id="table-wrapper" class="overflow-x-auto rounded-3xl border border-slate-200 bg-white/90 shadow-2xl">
         <table class="min-w-full divide-y divide-slate-200 text-left">
           <thead class="bg-slate-50">
             <tr>
+              <th class="px-4 py-3 text-xs font-bold uppercase tracking-[0.2em] text-slate-500">No</th>
               <th class="px-4 py-3 text-xs font-bold uppercase tracking-[0.2em] text-slate-500">Pertandingan</th>
               <th class="px-4 py-3 text-xs font-bold uppercase tracking-[0.2em] text-slate-500">Panitia</th>
               <th class="px-4 py-3 text-xs font-bold uppercase tracking-[0.2em] text-slate-500">Skor</th>
@@ -91,45 +110,94 @@
 
       firebase.initializeApp(firebaseConfig)
       const db = firebase.database()
-      const historyRef = db.ref("scoreboard/history")
+
+      // PENTING: kontrol.html menyimpan ke node root "history".
+      // Node "scoreboard/history" dibaca juga supaya data versi lama tetap tampil.
+      const SOURCES = ["history", "scoreboard/history"]
+
       const historyContainer = document.getElementById("history-container")
       const emptyState = document.getElementById("empty-state")
+      const tableWrapper = document.getElementById("table-wrapper")
+      const totalCount = document.getElementById("total-count")
+      const searchInput = document.getElementById("search-input")
 
-      const toDateLabel = (timestamp) =>
-        new Intl.DateTimeFormat("id-ID", {
-          timeZone: "Asia/Jakarta",
-          weekday: "long",
-          day: "2-digit",
-          month: "long",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false,
-        }).format(new Date(timestamp)) + " WIB"
+      const store = {} // { "path::key": data }
+      let keyword = ""
+
+      const toDateLabel = (timestamp) => {
+        if (!timestamp) return "-"
+        const d = new Date(timestamp)
+        if (isNaN(d.getTime())) return "-"
+        return (
+          new Intl.DateTimeFormat("id-ID", {
+            timeZone: "Asia/Jakarta",
+            weekday: "long",
+            day: "2-digit",
+            month: "long",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+          }).format(d) + " WIB"
+        )
+      }
+
+      const getFinishedAt = (item) => {
+        if (typeof item.finishedAt === "number") return item.finishedAt
+        if (item.finishedAtText) {
+          const t = Date.parse(item.finishedAtText)
+          if (!isNaN(t)) return t
+        }
+        return 0
+      }
 
       const getWinner = (item) => {
-        const scoreA = item.scoreA ?? 0
-        const scoreB = item.scoreB ?? 0
+        const scoreA = Number(item.scoreA ?? 0)
+        const scoreB = Number(item.scoreB ?? 0)
         if (scoreA > scoreB) return item.teamAName || "TIM A"
         if (scoreB > scoreA) return item.teamBName || "TIM B"
         return "Seri"
       }
 
-      function renderHistory(items) {
+      // Buang record yang jelas bukan data pertandingan (mis. sisa node lama)
+      const isValidMatch = (item) =>
+        item &&
+        typeof item === "object" &&
+        !Array.isArray(item) &&
+        ("scoreA" in item || "scoreB" in item || "teamAName" in item || "teamBName" in item)
+
+      function render() {
+        const items = Object.values(store)
+          .filter(isValidMatch)
+          .sort((a, b) => getFinishedAt(b) - getFinishedAt(a))
+
+        const filtered = keyword
+          ? items.filter((it) =>
+              [it.sport, it.panitia, it.teamAName, it.teamBName]
+                .join(" ")
+                .toLowerCase()
+                .includes(keyword)
+            )
+          : items
+
+        totalCount.textContent = items.length
         historyContainer.innerHTML = ""
 
-        if (items.length === 0) {
+        if (filtered.length === 0) {
           emptyState.classList.remove("hidden")
+          tableWrapper.classList.add("hidden")
           return
         }
 
         emptyState.classList.add("hidden")
+        tableWrapper.classList.remove("hidden")
 
-        items.forEach((item, index) => {
-          const row = document.createElement("tr")
+        filtered.forEach((item, index) => {
           const winner = getWinner(item)
+          const row = document.createElement("tr")
           row.className = "history-card hover:bg-slate-50"
           row.innerHTML = `
+            <td class="px-4 py-4 align-top text-sm font-bold text-slate-400">${index + 1}</td>
             <td class="px-4 py-4 align-top">
               <div class="font-extrabold text-slate-800">${item.teamAName || "TIM A"} vs ${item.teamBName || "TIM B"}</div>
               <div class="text-xs text-slate-400 mt-1">${item.sport || "-"} · Babak ${item.round || 1}</div>
@@ -137,17 +205,33 @@
             <td class="px-4 py-4 align-top text-sm text-slate-600">${item.panitia || "-"}</td>
             <td class="px-4 py-4 align-top text-sm font-extrabold text-slate-800">${item.scoreA ?? 0} - ${item.scoreB ?? 0}</td>
             <td class="px-4 py-4 align-top text-sm font-bold ${winner === "Seri" ? "text-slate-500" : "text-emerald-600"}">${winner}</td>
-            <td class="px-4 py-4 align-top text-sm text-slate-600 whitespace-nowrap">${toDateLabel(item.finishedAt || Date.now())}</td>
+            <td class="px-4 py-4 align-top text-sm text-slate-600 whitespace-nowrap">${toDateLabel(getFinishedAt(item))}</td>
           `
           historyContainer.appendChild(row)
         })
       }
 
-      historyRef.orderByChild("finishedAt").on("value", (snap) => {
-        const items = []
-        snap.forEach((child) => items.push(child.val()))
-        items.sort((a, b) => (a.finishedAt || 0) - (b.finishedAt || 0))
-        renderHistory(items.reverse())
+      // Listener per sumber. Pakai .on("value") tanpa orderByChild/limit
+      // supaya SEMUA record ikut terbaca, bukan cuma yang terbaru.
+      SOURCES.forEach((path) => {
+        db.ref(path).on(
+          "value",
+          (snap) => {
+            Object.keys(store).forEach((k) => {
+              if (k.startsWith(path + "::")) delete store[k]
+            })
+            snap.forEach((child) => {
+              store[path + "::" + child.key] = child.val()
+            })
+            render()
+          },
+          (err) => console.warn("Gagal baca " + path, err)
+        )
+      })
+
+      searchInput.addEventListener("input", (e) => {
+        keyword = e.target.value.trim().toLowerCase()
+        render()
       })
 
       db.ref(".info/connected").on("value", (snap) => {
@@ -161,6 +245,8 @@
           text.textContent = "Terputus"
         }
       })
+
+      render()
     </script>
   </body>
 </html>
