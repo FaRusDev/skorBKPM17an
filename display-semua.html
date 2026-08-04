@@ -34,7 +34,7 @@
       </div>
     </header>
 
-    <main id="cards-container" class="p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6"></main>
+    <main id="cards-container" class="p-4 sm:p-6 flex flex-wrap gap-4 sm:gap-6 items-stretch"></main>
     <div id="empty-state" class="hidden flex-col items-center justify-center text-center py-24">
       <p class="text-2xl font-bold text-slate-500">Belum ada pertandingan yang sedang berlangsung</p>
       <p class="text-slate-400 mt-2">Menunggu panitia memulai pertandingan...</p>
@@ -84,13 +84,25 @@
         emptyState.classList.toggle("flex", !hasCards)
       }
 
+      function updateCardLayout() {
+        const cards = Array.from(container.children)
+        const total = cards.length
+        const hasOddLastCard = total > 1 && total % 2 === 1
+
+        cards.forEach((card, index) => {
+          const isLastOddCard = hasOddLastCard && index === total - 1
+          card.className = isLastOddCard
+            ? "match-card bg-white rounded-3xl shadow-2xl p-5 flex flex-col items-center w-full"
+            : "match-card bg-white rounded-3xl shadow-2xl p-5 flex flex-col items-center w-full md:w-[calc(50%-0.75rem)]"
+        })
+      }
+
       function renderCard(id, data) {
         let card = document.getElementById(`card-${id}`)
         const isNew = !card
         if (isNew) {
           card = document.createElement("div")
           card.id = `card-${id}`
-          card.className = "match-card bg-white rounded-3xl shadow-2xl p-5 flex flex-col items-center"
           container.appendChild(card)
         }
 
@@ -131,12 +143,14 @@
         }
 
         lastScores[id] = { scoreA: data.scoreA, scoreB: data.scoreB }
+        updateCardLayout()
       }
 
       function removeCard(id) {
         const card = document.getElementById(`card-${id}`)
         if (card) card.remove()
         delete lastScores[id]
+        updateCardLayout()
       }
 
       matchesRef.on("child_added", (snap) => { renderCard(snap.key, snap.val()); updateEmptyState() })
