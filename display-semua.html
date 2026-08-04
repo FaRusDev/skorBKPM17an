@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Scoreboard - Semua Pertandingan Live</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Graduate:wght@400;500;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+    <style>
+      body {
+        font-family: "Graduate", sans-serif;
+        background-color: #f4f4f5;
+        color: #18181b;
+        min-height: 100vh;
+      }
+      .score-update-animation {
+        animation: score-pop 0.3s ease-out;
+      }
+      @keyframes score-pop {
+        50% {
+          transform: scale(1.1);
+        }
+      }
+      * {
+        transition: background-color 0.2s ease, color 0.2s ease,
+          transform 0.15s ease, box-shadow 0.2s ease;
+      }
+      .conn-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 9999px;
+        display: inline-block;
+        margin-right: 6px;
+      }
+      .match-card {
+        animation: fade-in 0.3s ease-out;
+      }
+      @keyframes fade-in {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+    </style>
+  </head>
+  <body class="bg-[url(./assets/bg.png)] bg-cover bg-fixed">
+    <header class="flex justify-between items-center px-6 py-4 bg-white/90">
+      <img src="./assets/bkpm.png" alt="Logo BKPM" class="h-16" />
+      <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-800">
+        LIVE SCOREBOARD — SEMUA PERTANDINGAN
+      </h1>
+      <div class="flex items-center text-xs sm:text-sm font-semibold text-slate-600">
+        <span class="conn-dot bg-gray-400" id="conn-dot"></span>
+        <span id="conn-text">Menghubungkan...</span>
+      </div>
+    </header>
+
+    <main id="cards-container" class="p-4 sm:p-6 grid gap-4 sm:gap-6" style="grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));">
+      <!-- Kartu pertandingan akan muncul otomatis di sini -->
+    </main>
+
+    <div id="empty-state" class="hidden flex-col items-center justify-center text-center py-24">
+      <p class="text-2xl font-bold text-slate-500">Belum ada pertandingan yang sedang berlangsung</p>
+      <p class="text-slate-400 mt-2">Menunggu panitia memulai pertandingan...</p>
+    </div>
+
+    <script>
+      const firebaseConfig = {
+        apiKey: "AIzaSyA9rE3eh4H21_CJquRgJ13GQfWtyi4b3_g",
+        authDomain: "skor-basket-bkpm.firebaseapp.com",
+        databaseURL: "https://skor-basket-bkpm-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "skor-basket-bkpm",
+        storageBucket: "skor-basket-bkpm.firebasestorage.app",
+        messagingSenderId: "796797660486",
+        appId: "1:796797660486:web:3f475ab7584c096d4c8947",
+      }
+
+      firebase.initializeApp(firebaseConfig)
+      const db = firebase.database()
+      const matchesRef = db.ref("matches")
+      const container = document.getElementById("cards-container")
+      const emptyState = document.getElementById("empty-state")
+
+      const lastScores = {}
+
+      const formatTime = (seconds) =>
+        `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`
+
+      function renderCard(id, data) {
+        let card = document.getElementById(`card-${id}`)
+        const isNew = !card
+        if (isNew) {
+          card = document.createElement("div")
+          card.id = `card-${id}`
+          card.className = "match-card bg-white rounded-3xl shadow-2xl p-5 flex flex-col items-center"
+          container.appendChild(card)
+        }
+
+        const prev = lastScores[id] || { scoreA: null, scoreB: null }
+
+        card.innerHTML = `
+          <div class="w-full flex justify-between items-center mb-2">
+            <span class="text-xs font-bold text-slate-400">Panitia: ${data.panitia || "-"}</span>
+            <span class="text-xs font-bold ${data.isPaused ? "text-amber-500" : "text-emerald-500"}">
+              ${data.isPaused ? "● PAUSE" : "● LIVE"}
+            </span>
+          </div>
+          <div class="text-2xl sm:text-3xl font-extrabold text-slate-700 mb-3">${data.sport || "-"}</div>
+          <div class="w-full grid grid-cols-3 items-center gap-2 mb-2">
+            <div class="bg-blue-600 rounded-2xl p-3 text-center">
+              <div class="text-white font-bold text-sm truncate">${data.teamAName || "TIM A"}</div>
+              <div id="score-a-${id}" class="text-white font-black text-4xl sm:text-5xl">${data.scoreA ?? 0}</div>
+            </div>
+            <div class="text-center">
+              <div class="font-black text-slate-800 text-2xl sm:text-3xl">${formatTime(data.totalSeconds ?? 0)}</div>
+              <div class="text-xs font-bold text-slate-500 mt-1">Babak ${data.round || 1}</div>
+            </div>
+            <div class="bg-emerald-600 rounded-2xl p-3 text-center">
+              <div class="text-white font-bold text-sm truncate">${data.teamBName || "TIM B"}</div>
+              <div id="score-b-${id}" class="text-white font-black text-4xl sm:text-5xl">${data.scoreB ?? 0}</div>
+            </div>
+          </div>
+        `
+
+        if (!isNew) {
+          const scoreAEl = document.getElementById(`score-a-${id}`)
+          const scoreBEl = document.getElementById(`score-b-${id}`)
+          if (prev.scoreA !== null && prev.scoreA !== data.scoreA) {
+            scoreAEl.classList.add("score-update-animation")
+            setTimeout(() => scoreAEl.classList.remove("score-update-animation"), 300)
+          }
+          if (prev.scoreB !== null && prev.scoreB !== data.scoreB) {
+            scoreBEl.classList.add("score-update-animation")
+            setTimeout(() => scoreBEl.classList.remove("score-update-animation"), 300)
+          }
+        }
+
+        lastScores[id] = { scoreA: data.scoreA, scoreB: data.scoreB }
+      }
+
+      function removeCard(id) {
+        const card = document.getElementById(`card-${id}`)
+        if (card) card.remove()
+        delete lastScores[id]
+      }
+
+      function updateEmptyState() {
+        const hasCards = container.children.length > 0
+        emptyState.classList.toggle("hidden", hasCards)
+        emptyState.classList.toggle("flex", !hasCards)
+      }
+
+      matchesRef.on("child_added", (snap) => {
+        renderCard(snap.key, snap.val())
+        updateEmptyState()
+      })
+      matchesRef.on("child_changed", (snap) => {
+        renderCard(snap.key, snap.val())
+      })
+      matchesRef.on("child_removed", (snap) => {
+        removeCard(snap.key)
+        updateEmptyState()
+      })
+
+      db.ref(".info/connected").on("value", (snap) => {
+        const dot = document.getElementById("conn-dot")
+        const text = document.getElementById("conn-text")
+        if (snap.val() === true) {
+          dot.className = "conn-dot bg-emerald-500"
+          text.textContent = "Terhubung (Live)"
+        } else {
+          dot.className = "conn-dot bg-red-500"
+          text.textContent = "Terputus"
+        }
+      })
+
+      updateEmptyState()
+    </script>
+  </body>
+</html>

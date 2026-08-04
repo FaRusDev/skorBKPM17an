@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Scoreboard Final - Tampilan Layar</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Graduate:wght@400;500;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+    <style>
+      body {
+        font-family: "Graduate", sans-serif;
+        background-color: #ffff;
+        color: #18181b;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+      }
+      .score-update-animation {
+        animation: score-pop 0.3s ease-out;
+      }
+      @keyframes score-pop {
+        50% {
+          transform: scale(1.1);
+        }
+      }
+      * {
+        transition: background-color 0.2s ease, color 0.2s ease,
+          transform 0.15s ease, box-shadow 0.2s ease;
+      }
+      .conn-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 9999px;
+        display: inline-block;
+        margin-right: 6px;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      class="h-screen flex flex-col justify-between items-center bg-[url(./bbg.png)] bg-cover"
+    >
+      <div class="flex justify-between w-full items-center text-center px-4">
+        <img src="./bkpm.png" alt="Logo BKPM" class="h-32 mt-10" />
+        <div id="conn-status" class="flex items-center text-xs sm:text-sm font-semibold text-slate-600 mt-2">
+          <span class="conn-dot bg-gray-400" id="conn-dot"></span>
+          <span id="conn-text">Menghubungkan...</span>
+        </div>
+      </div>
+
+      <div
+        id="page-title"
+        class="text-4xl sm:text-5xl font-extrabold text-slate-700 rounded-lg px-2 py-1"
+      >
+        SCOREBOARD
+      </div>
+      <main class="sm:p-4 grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
+        <section
+          class="flex flex-col items-center justify-between text-center p-3 sm:p-6 bg-blue-600 rounded-2xl sm:rounded-3xl shadow-2xl border"
+        >
+          <div
+            id="team-a-name"
+            class="w-full text-3xl sm:text-4xl font-bold text-white rounded-lg px-2 py-1"
+          >
+            TIM A
+          </div>
+          <div
+            id="score-a"
+            class="my-2 font-black text-white"
+            style="font-size: clamp(5rem, 25vw, 12rem); line-height: 1"
+          >
+            0
+          </div>
+        </section>
+
+        <section
+          class="order-first lg:order-none flex flex-col items-center justify-center text-center gap-10 p-3"
+        >
+          <div
+            id="game-type"
+            class="text-4xl sm:text-5xl font-extrabold text-slate-700 rounded-lg px-2 py-1"
+          >
+            BASKET
+          </div>
+          <div
+            id="timer-display"
+            class="font-black text-slate-800"
+            style="font-size: clamp(4.5rem, 22vw, 8rem); line-height: 1"
+          >
+            00:00
+          </div>
+          <div
+            id="round-display-text"
+            class="text-xl sm:text-2xl font-bold text-slate-600"
+          >
+            Babak 1
+          </div>
+        </section>
+
+        <section
+          class="flex flex-col items-center justify-between text-center p-3 sm:p-6 bg-emerald-600 rounded-2xl sm:rounded-3xl shadow-sm border border-gray-200/50"
+        >
+          <div
+            id="team-b-name"
+            class="w-full text-3xl sm:text-4xl font-bold text-white rounded-lg px-2 py-1"
+          >
+            TIM B
+          </div>
+          <div
+            id="score-b"
+            class="my-2 font-black text-white"
+            style="font-size: clamp(5rem, 25vw, 12rem); line-height: 1"
+          >
+            0
+          </div>
+        </section>
+      </main>
+
+      <footer class="sticky bottom-0 w-full p-3 bg-transparent">
+        <div class="max-w-4xl mx-auto text-center text-xs text-slate-500">
+          Mode Tampilan — hanya menampilkan skor dan waktu secara live, tidak bisa diedit dari halaman ini.
+        </div>
+      </footer>
+    </div>
+
+    <script>
+      // GANTI DENGAN CONFIG FIREBASE YANG SAMA PERSIS DENGAN index.html
+      const firebaseConfig = {
+        apiKey: "AIzaSyA9rE3eh4H21_CJquRgJ13GQfWtyi4b3_g",
+        authDomain: "skor-basket-bkpm.firebaseapp.com",
+        databaseURL: "https://skor-basket-bkpm-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "skor-basket-bkpm",
+        storageBucket: "skor-basket-bkpm.firebasestorage.app",
+        messagingSenderId: "796797660486",
+        appId: "1:796797660486:web:3f475ab7584c096d4c8947",
+      }
+
+      firebase.initializeApp(firebaseConfig)
+      const db = firebase.database()
+      const gameRef = db.ref("scoreboard/live")
+
+      const elements = {
+        scoreA: document.getElementById("score-a"),
+        scoreB: document.getElementById("score-b"),
+        timer: document.getElementById("timer-display"),
+        teamAName: document.getElementById("team-a-name"),
+        teamBName: document.getElementById("team-b-name"),
+        gameType: document.getElementById("game-type"),
+        roundDisplayText: document.getElementById("round-display-text"),
+        connDot: document.getElementById("conn-dot"),
+        connText: document.getElementById("conn-text"),
+      }
+
+      let lastScoreA = 0,
+        lastScoreB = 0
+
+      const formatTime = (seconds) =>
+        `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(
+          seconds % 60
+        ).padStart(2, "0")}`
+
+      gameRef.on("value", (snap) => {
+        const data = snap.val()
+        if (!data) return
+        const scoreA = data.scoreA ?? 0
+        const scoreB = data.scoreB ?? 0
+
+        elements.scoreA.textContent = scoreA
+        elements.scoreB.textContent = scoreB
+        if (scoreA !== lastScoreA) {
+          elements.scoreA.classList.add("score-update-animation")
+          setTimeout(() => elements.scoreA.classList.remove("score-update-animation"), 300)
+        }
+        if (scoreB !== lastScoreB) {
+          elements.scoreB.classList.add("score-update-animation")
+          setTimeout(() => elements.scoreB.classList.remove("score-update-animation"), 300)
+        }
+        lastScoreA = scoreA
+        lastScoreB = scoreB
+
+        elements.timer.textContent = formatTime(data.totalSeconds ?? 0)
+        if (data.teamAName !== undefined) elements.teamAName.textContent = data.teamAName
+        if (data.teamBName !== undefined) elements.teamBName.textContent = data.teamBName
+        if (data.gameType !== undefined) elements.gameType.textContent = data.gameType
+        elements.roundDisplayText.textContent = `Babak ${data.round || 1}`
+      })
+
+      db.ref(".info/connected").on("value", (snap) => {
+        if (snap.val() === true) {
+          elements.connDot.className = "conn-dot bg-emerald-500"
+          elements.connText.textContent = "Terhubung (Live)"
+        } else {
+          elements.connDot.className = "conn-dot bg-red-500"
+          elements.connText.textContent = "Terputus"
+        }
+      })
+    </script>
+  </body>
+</html>
