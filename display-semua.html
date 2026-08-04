@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Scoreboard - 5 Pertandingan Terakhir</title>
+    <title>Scoreboard - Live & 5 Pertandingan Terakhir</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -68,15 +68,41 @@
       </div>
     </header>
 
-    <main class="mx-auto max-w-7xl px-4 sm:px-6 py-6">
-      <div id="empty-state" class="hidden rounded-3xl border border-dashed border-slate-300 bg-white/80 px-6 py-16 text-center shadow-sm">
-        <p class="text-2xl font-bold text-slate-500">Belum ada pertandingan yang selesai</p>
-        <p class="text-slate-400 mt-2">Riwayat akan tampil setelah panitia mengakhiri pertandingan.</p>
-      </div>
+    <main class="mx-auto max-w-7xl px-4 sm:px-6 py-6 space-y-6">
+      <section class="rounded-3xl bg-white/95 shadow-2xl ring-1 ring-slate-200 overflow-hidden">
+        <div class="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-[0.25em] text-slate-400">Live Sekarang</p>
+            <h2 class="text-lg sm:text-xl font-extrabold text-slate-800">Skor realtime pertandingan aktif</h2>
+          </div>
+          <div class="text-right">
+            <div id="live-status" class="text-xs font-bold text-amber-600">Menunggu data...</div>
+            <div class="text-xs text-slate-400">Skor diperbarui otomatis</div>
+          </div>
+        </div>
+        <div id="live-container" class="p-5">
+          <div id="live-empty" class="rounded-3xl border border-dashed border-slate-300 bg-slate-50 px-6 py-12 text-center">
+            <p class="text-xl font-bold text-slate-500">Belum ada pertandingan live</p>
+            <p class="text-slate-400 mt-2">Saat panitia memulai pertandingan, skor akan tampil di sini.</p>
+          </div>
+        </div>
+      </section>
 
-      <div id="cards-container" class="grid gap-4 lg:gap-5">
-        <!-- 5 riwayat pertandingan akan muncul di sini -->
-      </div>
+      <section>
+        <div class="flex items-end justify-between gap-3 mb-3">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-[0.25em] text-slate-400">Riwayat</p>
+            <h2 class="text-lg sm:text-xl font-extrabold text-slate-800">5 Pertandingan Terakhir</h2>
+          </div>
+        </div>
+        <div id="empty-state" class="hidden rounded-3xl border border-dashed border-slate-300 bg-white/80 px-6 py-16 text-center shadow-sm">
+          <p class="text-2xl font-bold text-slate-500">Belum ada pertandingan yang selesai</p>
+          <p class="text-slate-400 mt-2">Riwayat akan tampil setelah panitia mengakhiri pertandingan.</p>
+        </div>
+        <div id="cards-container" class="grid gap-4 lg:gap-5 mt-4">
+          <!-- 5 riwayat pertandingan akan muncul di sini -->
+        </div>
+      </section>
     </main>
 
     <script>
@@ -92,12 +118,55 @@
 
       firebase.initializeApp(firebaseConfig)
       const db = firebase.database()
+      const gameRef = db.ref("scoreboard/live")
       const historyRef = db.ref("scoreboard/history")
       const container = document.getElementById("cards-container")
       const emptyState = document.getElementById("empty-state")
+      const liveContainer = document.getElementById("live-container")
+      const liveEmpty = document.getElementById("live-empty")
+      const liveStatus = document.getElementById("live-status")
 
       const formatTime = (seconds) =>
         `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`
+
+      function renderLive(data) {
+        if (!data) {
+          liveContainer.innerHTML = '<div id="live-empty" class="rounded-3xl border border-dashed border-slate-300 bg-slate-50 px-6 py-12 text-center"><p class="text-xl font-bold text-slate-500">Belum ada pertandingan live</p><p class="text-slate-400 mt-2">Saat panitia memulai pertandingan, skor akan tampil di sini.</p></div>'
+          return
+        }
+
+        const scoreA = data.scoreA ?? 0
+        const scoreB = data.scoreB ?? 0
+        const isFinished = data.status === "finished"
+        liveStatus.textContent = isFinished ? "Selesai" : "LIVE"
+        liveStatus.className = `text-xs font-bold ${isFinished ? "text-slate-500" : "text-emerald-600"}`
+
+        liveContainer.innerHTML = `
+          <div class="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-3 items-stretch">
+            <div class="rounded-3xl bg-blue-600 p-4 text-center text-white shadow-lg">
+              <div class="text-xs font-bold uppercase tracking-[0.2em] opacity-80">Tim A</div>
+              <div class="mt-2 text-xl sm:text-2xl font-extrabold truncate">${data.teamAName || "TIM A"}</div>
+              <div class="mt-4 text-5xl sm:text-6xl font-black leading-none">${scoreA}</div>
+            </div>
+            <div class="flex items-center justify-center rounded-3xl bg-slate-50 px-5 py-4 text-center">
+              <div>
+                <div class="text-sm font-bold text-slate-500">${data.gameType || data.sport || "Jenis Laga"}</div>
+                <div class="mt-2 text-3xl sm:text-4xl font-black text-slate-800">${formatTime(data.totalSeconds ?? 0)}</div>
+                <div class="mt-2 text-sm font-semibold text-slate-400">Babak ${data.round || 1}</div>
+              </div>
+            </div>
+            <div class="rounded-3xl bg-emerald-600 p-4 text-center text-white shadow-lg">
+              <div class="text-xs font-bold uppercase tracking-[0.2em] opacity-80">Tim B</div>
+              <div class="mt-2 text-xl sm:text-2xl font-extrabold truncate">${data.teamBName || "TIM B"}</div>
+              <div class="mt-4 text-5xl sm:text-6xl font-black leading-none">${scoreB}</div>
+            </div>
+          </div>
+          <div class="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs font-semibold text-slate-500">
+            <span>Panitia: ${data.panitia || "-"}</span>
+            <span>${isFinished ? "Status: selesai" : data.isPaused ? "Status: pause" : "Status: berjalan"}</span>
+          </div>
+        `
+      }
 
       function getWinner(data) {
         if ((data.scoreA ?? 0) > (data.scoreB ?? 0)) return data.teamAName || "TIM A"
@@ -149,6 +218,10 @@
       function updateEmptyState(hasItems) {
         emptyState.classList.toggle("hidden", hasItems)
       }
+
+      gameRef.on("value", (snap) => {
+        renderLive(snap.val())
+      })
 
       historyRef.orderByChild("finishedAt").limitToLast(5).on("value", (snap) => {
         const items = []
