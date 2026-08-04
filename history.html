@@ -91,7 +91,7 @@
 
       firebase.initializeApp(firebaseConfig)
       const db = firebase.database()
-      const historyRef = db.ref("history")
+      const historyRef = db.ref("scoreboard/history")
       const historyContainer = document.getElementById("history-container")
       const emptyState = document.getElementById("empty-state")
 
