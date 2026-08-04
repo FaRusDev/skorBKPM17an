@@ -195,38 +195,34 @@
       const historyContainer = document.getElementById("history-container")
       const historyRef = db.ref("history")
 
-      function renderHistory() {
-        historyRef
-          .orderByChild("finishedAt")
-          .limitToLast(5)
-          .once("value", (snap) => {
-            const items = []
-            snap.forEach((child) => items.push(child.val()))
-            items.reverse()
-            if (items.length === 0) {
-              historyContainer.innerHTML = '<p class="text-slate-400 text-xs whitespace-nowrap">Belum ada pertandingan yang selesai.</p>'
-              return
-            }
-            historyContainer.innerHTML = items
-              .map((it) => {
-                const time = new Date(it.finishedAt).toLocaleTimeString("id-ID", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })
-                const winner =
-                  it.scoreA > it.scoreB ? it.teamAName : it.scoreB > it.scoreA ? it.teamBName : "Seri"
-                return `<div class="bg-slate-100 rounded-lg px-3 py-1.5 flex items-center gap-2 whitespace-nowrap flex-shrink-0" title="Pemenang: ${winner}">
-                  <span class="text-[10px] text-slate-400">${time}</span>
-                  <span class="text-[11px] font-semibold text-slate-600">${it.sport || "-"}</span>
-                  <span class="text-[11px] font-bold text-slate-800">${it.teamAName || "TIM A"} ${it.scoreA ?? 0}-${it.scoreB ?? 0} ${it.teamBName || "TIM B"}</span>
-                </div>`
-              })
-              .join("")
+      function renderHistory(snap) {
+        const items = []
+        snap.forEach((child) => items.push(child.val()))
+        items.sort((a, b) => (a.finishedAt || 0) - (b.finishedAt || 0))
+        const last5 = items.slice(-5).reverse()
+
+        if (last5.length === 0) {
+          historyContainer.innerHTML = '<p class="text-slate-400 text-xs whitespace-nowrap">Belum ada pertandingan yang selesai.</p>'
+          return
+        }
+        historyContainer.innerHTML = last5
+          .map((it) => {
+            const time = new Date(it.finishedAt).toLocaleTimeString("id-ID", {
+              hour: "2-digit",
+              minute: "2-digit",
+            })
+            const winner =
+              it.scoreA > it.scoreB ? it.teamAName : it.scoreB > it.scoreA ? it.teamBName : "Seri"
+            return `<div class="bg-slate-100 rounded-lg px-3 py-1.5 flex items-center gap-2 whitespace-nowrap flex-shrink-0" title="Pemenang: ${winner}">
+              <span class="text-[10px] text-slate-400">${time}</span>
+              <span class="text-[11px] font-semibold text-slate-600">${it.sport || "-"}</span>
+              <span class="text-[11px] font-bold text-slate-800">${it.teamAName || "TIM A"} ${it.scoreA ?? 0}-${it.scoreB ?? 0} ${it.teamBName || "TIM B"}</span>
+            </div>`
           })
+          .join("")
       }
 
-      historyRef.limitToLast(1).on("child_added", renderHistory)
-      renderHistory()
+      historyRef.on("value", renderHistory)
 
       updateEmptyState()
     </script>
