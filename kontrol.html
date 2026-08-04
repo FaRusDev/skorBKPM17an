@@ -59,7 +59,7 @@
       class="min-h-screen flex items-center justify-center bg-[url(./assets/bbg.png)] bg-cover p-4"
     >
       <div class="bg-white/95 rounded-3xl shadow-2xl p-8 max-w-md w-full">
-        <img src="./assets/bkpm.png" alt="Logo BKPM" class="h-16 mx-auto mb-4" />
+        <img src="./assets/bkpm.jpg" alt="Logo BKPM" class="h-16 mx-auto mb-4" />
         <h1 class="text-2xl font-extrabold text-center text-slate-800 mb-1">
           Panel Panitia
         </h1>
@@ -122,7 +122,7 @@
       class="hidden h-screen flex flex-col justify-between items-center bg-[url(./assets/bbg.png)] bg-cover"
     >
       <div class="flex justify-between w-full items-center text-center px-4">
-        <img src="./assets/bkpm.png" alt="Logo BKPM" class="h-32 mt-10" />
+        <img src="./assets/bkpm.jpg" alt="Logo BKPM" class="h-32 mt-10" />
         <div class="flex flex-col items-end gap-1 mt-4">
           <div class="flex items-center text-xs sm:text-sm font-semibold text-slate-600">
             <span class="conn-dot bg-gray-400" id="conn-dot"></span>
@@ -472,9 +472,31 @@
           }
           historyRef.push(result)
           pushState("finished")
+          matchRef.off()
           matchRef.remove()
-          alert("Hasil pertandingan tersimpan ke riwayat, dan match ini dihapus dari tampilan live.")
+          resetToGate()
         }
+      }
+
+      function resetToGate() {
+        matchId = null
+        matchRef = null
+        scoreA = 0
+        scoreB = 0
+        totalSeconds = 0
+        isPaused = true
+        clearInterval(timerInterval)
+
+        gate.panitia.value = ""
+        gate.sport.value = ""
+        gate.teamA.value = ""
+        gate.teamB.value = ""
+        gate.error.classList.add("hidden")
+
+        elements.controlScreen.classList.add("hidden")
+        elements.controlScreen.classList.remove("flex")
+        gate.screen.classList.remove("hidden")
+        gate.panitia.focus()
       }
 
       const openHistoryModal = () => {
