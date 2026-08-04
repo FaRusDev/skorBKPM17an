@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Scoreboard - Semua Pertandingan Live</title>
+    <title>Scoreboard - 5 Pertandingan Terakhir</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -48,26 +48,36 @@
       }
     </style>
   </head>
-  <body class="bg-[url(./assets/bg.png)] bg-cover bg-fixed">
-    <header class="flex justify-between items-center px-6 py-4 bg-white/90">
-      <img src="./assets/bkpm.png" alt="Logo BKPM" class="h-16" />
-      <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-800">
-        LIVE SCOREBOARD — SEMUA PERTANDINGAN
-      </h1>
-      <div class="flex items-center text-xs sm:text-sm font-semibold text-slate-600">
-        <span class="conn-dot bg-gray-400" id="conn-dot"></span>
-        <span id="conn-text">Menghubungkan...</span>
+  <body class="bg-[url(./assets/bbg.png)] bg-cover bg-fixed">
+    <header class="bg-white/90 backdrop-blur-sm border-b border-white/60">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 py-4 grid grid-cols-1 gap-4 md:grid-cols-3 md:items-center">
+        <div class="text-center md:text-left">
+          <p class="text-xs font-bold uppercase tracking-[0.3em] text-slate-400">Kementerian</p>
+          <h1 class="text-xl sm:text-2xl font-extrabold text-slate-800">5 Pertandingan Terakhir</h1>
+          <p class="text-sm text-slate-500">Hasil pertandingan yang sudah selesai</p>
+        </div>
+        <div class="flex justify-center">
+          <div class="rounded-2xl bg-white shadow-lg ring-1 ring-slate-200 px-5 py-3">
+            <img src="./assets/bkpm.png" alt="Logo Kementerian" class="h-16 sm:h-20 object-contain" />
+          </div>
+        </div>
+        <div class="flex justify-center md:justify-end items-center text-xs sm:text-sm font-semibold text-slate-600">
+          <span class="conn-dot bg-gray-400" id="conn-dot"></span>
+          <span id="conn-text">Menghubungkan...</span>
+        </div>
       </div>
     </header>
 
-    <main id="cards-container" class="p-4 sm:p-6 grid gap-4 sm:gap-6" style="grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));">
-      <!-- Kartu pertandingan akan muncul otomatis di sini -->
-    </main>
+    <main class="mx-auto max-w-7xl px-4 sm:px-6 py-6">
+      <div id="empty-state" class="hidden rounded-3xl border border-dashed border-slate-300 bg-white/80 px-6 py-16 text-center shadow-sm">
+        <p class="text-2xl font-bold text-slate-500">Belum ada pertandingan yang selesai</p>
+        <p class="text-slate-400 mt-2">Riwayat akan tampil setelah panitia mengakhiri pertandingan.</p>
+      </div>
 
-    <div id="empty-state" class="hidden flex-col items-center justify-center text-center py-24">
-      <p class="text-2xl font-bold text-slate-500">Belum ada pertandingan yang sedang berlangsung</p>
-      <p class="text-slate-400 mt-2">Menunggu panitia memulai pertandingan...</p>
-    </div>
+      <div id="cards-container" class="grid gap-4 lg:gap-5">
+        <!-- 5 riwayat pertandingan akan muncul di sini -->
+      </div>
+    </main>
 
     <script>
       const firebaseConfig = {
@@ -82,89 +92,69 @@
 
       firebase.initializeApp(firebaseConfig)
       const db = firebase.database()
-      const matchesRef = db.ref("matches")
+      const historyRef = db.ref("scoreboard/history")
       const container = document.getElementById("cards-container")
       const emptyState = document.getElementById("empty-state")
-
-      const lastScores = {}
 
       const formatTime = (seconds) =>
         `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`
 
-      function renderCard(id, data) {
-        let card = document.getElementById(`card-${id}`)
-        const isNew = !card
-        if (isNew) {
-          card = document.createElement("div")
-          card.id = `card-${id}`
-          card.className = "match-card bg-white rounded-3xl shadow-2xl p-5 flex flex-col items-center"
+      function getWinner(data) {
+        if ((data.scoreA ?? 0) > (data.scoreB ?? 0)) return data.teamAName || "TIM A"
+        if ((data.scoreB ?? 0) > (data.scoreA ?? 0)) return data.teamBName || "TIM B"
+        return "Seri"
+      }
+
+      function renderCards(items) {
+        container.innerHTML = ""
+        items.slice(0, 5).forEach((data, index) => {
+          const card = document.createElement("article")
+          card.className = "match-card overflow-hidden rounded-3xl bg-white/95 shadow-2xl ring-1 ring-slate-200"
+          card.innerHTML = `
+            <div class="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
+              <div>
+                <p class="text-xs font-bold uppercase tracking-[0.25em] text-slate-400">Pertandingan ${index + 1}</p>
+                <h2 class="text-lg sm:text-xl font-extrabold text-slate-800 truncate">${data.sport || "-"}</h2>
+              </div>
+              <div class="text-right">
+                <div class="text-xs font-semibold text-slate-400">${data.finishedAt ? new Date(data.finishedAt).toLocaleString("id-ID") : ""}</div>
+                <div class="text-xs font-bold ${((data.scoreA ?? 0) === (data.scoreB ?? 0)) ? "text-slate-500" : "text-emerald-600"}">Pemenang: ${getWinner(data)}</div>
+              </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-3 items-stretch p-5">
+              <div class="rounded-3xl bg-blue-600 p-4 text-center text-white shadow-lg">
+                <div class="text-xs font-bold uppercase tracking-[0.2em] opacity-80">Tim A</div>
+                <div class="mt-2 text-xl sm:text-2xl font-extrabold truncate">${data.teamAName || "TIM A"}</div>
+                <div class="mt-4 text-5xl sm:text-6xl font-black leading-none">${data.scoreA ?? 0}</div>
+              </div>
+              <div class="flex items-center justify-center rounded-3xl bg-slate-50 px-5 py-4 text-center">
+                <div>
+                  <div class="text-sm font-bold text-slate-500">Babak ${data.round || 1}</div>
+                  <div class="mt-2 text-3xl sm:text-4xl font-black text-slate-800">${(data.scoreA ?? 0)} - ${(data.scoreB ?? 0)}</div>
+                  <div class="mt-2 text-sm font-semibold text-slate-400">Skor akhir</div>
+                </div>
+              </div>
+              <div class="rounded-3xl bg-emerald-600 p-4 text-center text-white shadow-lg">
+                <div class="text-xs font-bold uppercase tracking-[0.2em] opacity-80">Tim B</div>
+                <div class="mt-2 text-xl sm:text-2xl font-extrabold truncate">${data.teamBName || "TIM B"}</div>
+                <div class="mt-4 text-5xl sm:text-6xl font-black leading-none">${data.scoreB ?? 0}</div>
+              </div>
+            </div>
+          `
           container.appendChild(card)
-        }
-
-        const prev = lastScores[id] || { scoreA: null, scoreB: null }
-
-        card.innerHTML = `
-          <div class="w-full flex justify-between items-center mb-2">
-            <span class="text-xs font-bold text-slate-400">Panitia: ${data.panitia || "-"}</span>
-            <span class="text-xs font-bold ${data.isPaused ? "text-amber-500" : "text-emerald-500"}">
-              ${data.isPaused ? "● PAUSE" : "● LIVE"}
-            </span>
-          </div>
-          <div class="text-2xl sm:text-3xl font-extrabold text-slate-700 mb-3">${data.sport || "-"}</div>
-          <div class="w-full grid grid-cols-3 items-center gap-2 mb-2">
-            <div class="bg-blue-600 rounded-2xl p-3 text-center">
-              <div class="text-white font-bold text-sm truncate">${data.teamAName || "TIM A"}</div>
-              <div id="score-a-${id}" class="text-white font-black text-4xl sm:text-5xl">${data.scoreA ?? 0}</div>
-            </div>
-            <div class="text-center">
-              <div class="font-black text-slate-800 text-2xl sm:text-3xl">${formatTime(data.totalSeconds ?? 0)}</div>
-              <div class="text-xs font-bold text-slate-500 mt-1">Babak ${data.round || 1}</div>
-            </div>
-            <div class="bg-emerald-600 rounded-2xl p-3 text-center">
-              <div class="text-white font-bold text-sm truncate">${data.teamBName || "TIM B"}</div>
-              <div id="score-b-${id}" class="text-white font-black text-4xl sm:text-5xl">${data.scoreB ?? 0}</div>
-            </div>
-          </div>
-        `
-
-        if (!isNew) {
-          const scoreAEl = document.getElementById(`score-a-${id}`)
-          const scoreBEl = document.getElementById(`score-b-${id}`)
-          if (prev.scoreA !== null && prev.scoreA !== data.scoreA) {
-            scoreAEl.classList.add("score-update-animation")
-            setTimeout(() => scoreAEl.classList.remove("score-update-animation"), 300)
-          }
-          if (prev.scoreB !== null && prev.scoreB !== data.scoreB) {
-            scoreBEl.classList.add("score-update-animation")
-            setTimeout(() => scoreBEl.classList.remove("score-update-animation"), 300)
-          }
-        }
-
-        lastScores[id] = { scoreA: data.scoreA, scoreB: data.scoreB }
+        })
+        updateEmptyState(items.length > 0)
       }
 
-      function removeCard(id) {
-        const card = document.getElementById(`card-${id}`)
-        if (card) card.remove()
-        delete lastScores[id]
+      function updateEmptyState(hasItems) {
+        emptyState.classList.toggle("hidden", hasItems)
       }
 
-      function updateEmptyState() {
-        const hasCards = container.children.length > 0
-        emptyState.classList.toggle("hidden", hasCards)
-        emptyState.classList.toggle("flex", !hasCards)
-      }
-
-      matchesRef.on("child_added", (snap) => {
-        renderCard(snap.key, snap.val())
-        updateEmptyState()
-      })
-      matchesRef.on("child_changed", (snap) => {
-        renderCard(snap.key, snap.val())
-      })
-      matchesRef.on("child_removed", (snap) => {
-        removeCard(snap.key)
-        updateEmptyState()
+      historyRef.orderByChild("finishedAt").limitToLast(5).on("value", (snap) => {
+        const items = []
+        snap.forEach((child) => items.push(child.val()))
+        items.reverse()
+        renderCards(items)
       })
 
       db.ref(".info/connected").on("value", (snap) => {
@@ -178,8 +168,6 @@
           text.textContent = "Terputus"
         }
       })
-
-      updateEmptyState()
     </script>
   </body>
 </html>
