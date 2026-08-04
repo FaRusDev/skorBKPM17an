@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="id">
   <head>
@@ -7,10 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Graduate:wght@400;500;700;900&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Graduate:wght@400;500;700;900&display=swap" rel="stylesheet" />
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
     <style>
@@ -22,105 +20,44 @@
         flex-direction: column;
         min-height: 100vh;
       }
-      [contenteditable]:empty:before {
-        content: attr(placeholder);
-        color: #a1a1aa;
-        font-weight: 500;
-      }
-      .score-update-animation {
-        animation: score-pop 0.3s ease-out;
-      }
-      @keyframes score-pop {
-        50% {
-          transform: scale(1.1);
-        }
-      }
-      * {
-        transition: background-color 0.2s ease, color 0.2s ease,
-          transform 0.15s ease, box-shadow 0.2s ease;
-      }
-      [contenteditable]:focus {
-        background-color: #eef2ff;
-        box-shadow: 0 0 0 2px #6366f1;
-      }
-      .conn-dot {
-        width: 10px;
-        height: 10px;
-        border-radius: 9999px;
-        display: inline-block;
-        margin-right: 6px;
-      }
+      [contenteditable]:empty:before { content: attr(placeholder); color: #a1a1aa; font-weight: 500; }
+      .score-update-animation { animation: score-pop 0.3s ease-out; }
+      @keyframes score-pop { 50% { transform: scale(1.1); } }
+      * { transition: background-color 0.2s ease, color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease; }
+      [contenteditable]:focus { background-color: #eef2ff; box-shadow: 0 0 0 2px #6366f1; }
+      .conn-dot { width: 10px; height: 10px; border-radius: 9999px; display: inline-block; margin-right: 6px; }
     </style>
   </head>
   <body>
-    <!-- ===================== GERBANG MASUK PANITIA ===================== -->
-    <div
-      id="gate-screen"
-      class="min-h-screen flex items-center justify-center bg-[url(./assets/bbg.png)] bg-cover p-4"
-    >
+    <div id="gate-screen" class="min-h-screen flex items-center justify-center bg-[url(./assets/bbg.png)] bg-cover p-4">
       <div class="bg-white/95 rounded-3xl shadow-2xl p-8 max-w-md w-full">
         <img src="./assets/bkpm.png" alt="Logo BKPM" class="h-16 mx-auto mb-4" />
-        <h1 class="text-2xl font-extrabold text-center text-slate-800 mb-1">
-          Panel Panitia
-        </h1>
-        <p class="text-center text-slate-500 text-sm mb-6">
-          Isi data pertandingan yang akan kamu pandu
-        </p>
+        <h1 class="text-2xl font-extrabold text-center text-slate-800 mb-1">Panel Panitia</h1>
+        <p class="text-center text-slate-500 text-sm mb-6">Isi data pertandingan yang akan kamu pandu</p>
 
         <label class="text-xs font-semibold text-slate-500">Nama Panitia</label>
-        <input
-          id="gate-panitia"
-          type="text"
-          placeholder="Contoh: Budi"
-          class="w-full p-3 mt-1 mb-4 bg-slate-100 rounded-xl text-lg font-semibold outline-none focus:ring-2 focus:ring-indigo-500"
-        />
+        <input id="gate-panitia" type="text" placeholder="Contoh: Budi" class="w-full p-3 mt-1 mb-4 bg-slate-100 rounded-xl text-lg font-semibold outline-none focus:ring-2 focus:ring-indigo-500" />
 
         <label class="text-xs font-semibold text-slate-500">Cabang Olahraga / Jenis Laga</label>
-        <input
-          id="gate-sport"
-          type="text"
-          placeholder="Contoh: Voli, Basket, Bulutangkis, Balap Karung"
-          class="w-full p-3 mt-1 mb-4 bg-slate-100 rounded-xl text-lg font-semibold outline-none focus:ring-2 focus:ring-indigo-500"
-        />
+        <input id="gate-sport" type="text" placeholder="Contoh: Voli, Basket, Bulutangkis, Balap Karung" class="w-full p-3 mt-1 mb-4 bg-slate-100 rounded-xl text-lg font-semibold outline-none focus:ring-2 focus:ring-indigo-500" />
 
         <div class="grid grid-cols-2 gap-3 mb-6">
           <div>
             <label class="text-xs font-semibold text-slate-500">Nama Tim A</label>
-            <input
-              id="gate-team-a"
-              type="text"
-              placeholder="Tim A"
-              class="w-full p-3 mt-1 bg-blue-50 rounded-xl text-lg font-semibold outline-none focus:ring-2 focus:ring-blue-500"
-            />
+            <input id="gate-team-a" type="text" placeholder="Tim A" class="w-full p-3 mt-1 bg-blue-50 rounded-xl text-lg font-semibold outline-none focus:ring-2 focus:ring-blue-500" />
           </div>
           <div>
             <label class="text-xs font-semibold text-slate-500">Nama Tim B</label>
-            <input
-              id="gate-team-b"
-              type="text"
-              placeholder="Tim B"
-              class="w-full p-3 mt-1 bg-emerald-50 rounded-xl text-lg font-semibold outline-none focus:ring-2 focus:ring-emerald-500"
-            />
+            <input id="gate-team-b" type="text" placeholder="Tim B" class="w-full p-3 mt-1 bg-emerald-50 rounded-xl text-lg font-semibold outline-none focus:ring-2 focus:ring-emerald-500" />
           </div>
         </div>
 
-        <button
-          id="gate-start-btn"
-          class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-lg py-3 rounded-xl shadow-md transform hover:scale-[1.02]"
-        >
-          MULAI PANDU PERTANDINGAN
-        </button>
-        <p id="gate-error" class="text-red-500 text-xs text-center mt-3 hidden">
-          Nama panitia dan cabang olahraga wajib diisi.
-        </p>
+        <button id="gate-start-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-lg py-3 rounded-xl shadow-md transform hover:scale-[1.02]">MULAI PANDU PERTANDINGAN</button>
+        <p id="gate-error" class="text-red-500 text-xs text-center mt-3 hidden">Nama panitia dan cabang olahraga wajib diisi.</p>
       </div>
     </div>
 
-    <!-- ===================== PANEL KONTROL SCOREBOARD ===================== -->
-    <div
-      id="control-screen"
-      class="hidden h-screen flex flex-col justify-between items-center bg-[url(./assets/bbg.png)] bg-cover"
-    >
+    <div id="control-screen" class="hidden h-screen flex flex-col justify-between items-center bg-[url(./assets/bbg.png)] bg-cover">
       <div class="flex justify-between w-full items-center text-center px-4">
         <img src="./assets/bkpm.png" alt="Logo BKPM" class="h-32 mt-10" />
         <div class="flex flex-col items-end gap-1 mt-4">
@@ -128,39 +65,15 @@
             <span class="conn-dot bg-gray-400" id="conn-dot"></span>
             <span id="conn-text">Menghubungkan...</span>
           </div>
-          <div class="text-xs text-slate-500">
-            Panitia: <span id="panitia-label" class="font-bold"></span>
-          </div>
+          <div class="text-xs text-slate-500">Panitia: <span id="panitia-label" class="font-bold"></span></div>
         </div>
       </div>
 
-      <div
-        id="game-type"
-        contenteditable="true"
-        placeholder="Jenis Laga"
-        class="text-4xl sm:text-5xl font-extrabold text-slate-700 outline-none rounded-lg px-2 py-1"
-      >
-        BASKET
-      </div>
+      <div id="game-type" contenteditable="true" placeholder="Jenis Laga" class="text-4xl sm:text-5xl font-extrabold text-slate-700 outline-none rounded-lg px-2 py-1">BASKET</div>
       <main class="sm:p-4 grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
-        <section
-          class="flex flex-col items-center justify-between text-center p-3 sm:p-6 bg-blue-600 rounded-2xl sm:rounded-3xl shadow-2xl border"
-        >
-          <div
-            id="team-a-name"
-            contenteditable="true"
-            placeholder="Tim A"
-            class="w-full text-3xl sm:text-4xl font-bold text-white outline-none rounded-lg px-2 py-1 focus:bg-slate-600"
-          >
-            TIM A
-          </div>
-          <div
-            id="score-a"
-            class="my-2 font-black text-white"
-            style="font-size: clamp(5rem, 25vw, 12rem); line-height: 1"
-          >
-            0
-          </div>
+        <section class="flex flex-col items-center justify-between text-center p-3 sm:p-6 bg-blue-600 rounded-2xl sm:rounded-3xl shadow-2xl border">
+          <div id="team-a-name" contenteditable="true" placeholder="Tim A" class="w-full text-3xl sm:text-4xl font-bold text-white outline-none rounded-lg px-2 py-1 focus:bg-slate-600">TIM A</div>
+          <div id="score-a" class="my-2 font-black text-white" style="font-size: clamp(5rem, 25vw, 12rem); line-height: 1">0</div>
           <div class="w-full max-w-xs grid grid-cols-4 gap-2">
             <button onclick="updateScore('a', 1)" class="bg-blue-100 hover:bg-blue-200 h-14 rounded-lg font-semibold text-blue-800 text-xl transform hover:-translate-y-1">+1</button>
             <button onclick="updateScore('a', 2)" class="bg-blue-100 hover:bg-blue-200 h-14 rounded-lg font-semibold text-blue-800 text-xl transform hover:-translate-y-1">+2</button>
@@ -175,24 +88,9 @@
           <div id="round-display-text" class="text-xl sm:text-2xl font-bold text-slate-600">Babak 1</div>
         </section>
 
-        <section
-          class="flex flex-col items-center justify-between text-center p-3 sm:p-6 bg-emerald-600 rounded-2xl sm:rounded-3xl shadow-sm border border-gray-200/50"
-        >
-          <div
-            id="team-b-name"
-            contenteditable="true"
-            placeholder="Tim B"
-            class="w-full text-3xl sm:text-4xl font-bold text-white outline-none rounded-lg px-2 py-1 focus:bg-slate-600"
-          >
-            TIM B
-          </div>
-          <div
-            id="score-b"
-            class="my-2 font-black text-white"
-            style="font-size: clamp(5rem, 25vw, 12rem); line-height: 1"
-          >
-            0
-          </div>
+        <section class="flex flex-col items-center justify-between text-center p-3 sm:p-6 bg-emerald-600 rounded-2xl sm:rounded-3xl shadow-sm border border-gray-200/50">
+          <div id="team-b-name" contenteditable="true" placeholder="Tim B" class="w-full text-3xl sm:text-4xl font-bold text-white outline-none rounded-lg px-2 py-1 focus:bg-slate-600">TIM B</div>
+          <div id="score-b" class="my-2 font-black text-white" style="font-size: clamp(5rem, 25vw, 12rem); line-height: 1">0</div>
           <div class="w-full max-w-xs grid grid-cols-4 gap-2">
             <button onclick="updateScore('b', 1)" class="bg-emerald-100 hover:bg-emerald-200 h-14 rounded-lg font-semibold text-emerald-800 text-xl transform hover:-translate-y-1">+1</button>
             <button onclick="updateScore('b', 2)" class="bg-emerald-100 hover:bg-emerald-200 h-14 rounded-lg font-semibold text-emerald-800 text-xl transform hover:-translate-y-1">+2</button>
@@ -247,19 +145,13 @@
         messagingSenderId: "796797660486",
         appId: "1:796797660486:web:3f475ab7584c096d4c8947",
       }
-
       firebase.initializeApp(firebaseConfig)
       const db = firebase.database()
-
       let matchId = null
       let matchRef = null
-      let historyRef = db.ref("history")
-
-      let scoreA = 0,
-        scoreB = 0
-      let timerInterval = null,
-        totalSeconds = 0,
-        isPaused = true
+      const historyRef = db.ref("history")
+      let scoreA = 0, scoreB = 0
+      let timerInterval = null, totalSeconds = 0, isPaused = true
       let suppressWrite = false
 
       const gate = {
@@ -271,7 +163,6 @@
         startBtn: document.getElementById("gate-start-btn"),
         error: document.getElementById("gate-error"),
       }
-
       const elements = {
         controlScreen: document.getElementById("control-screen"),
         scoreA: document.getElementById("score-a"),
@@ -297,70 +188,12 @@
       }
 
       function slugify(text) {
-        return text
-          .toString()
-          .toLowerCase()
-          .trim()
-          .replace(/[^a-z0-9]+/g, "-")
-          .replace(/(^-|-$)/g, "")
+        return text.toString().toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")
       }
 
-      gate.startBtn.addEventListener("click", () => {
-        const panitiaName = gate.panitia.value.trim()
-        const sportName = gate.sport.value.trim()
-        const teamA = gate.teamA.value.trim() || "TIM A"
-        const teamB = gate.teamB.value.trim() || "TIM B"
-
-        if (!panitiaName || !sportName) {
-          gate.error.classList.remove("hidden")
-          return
-        }
-        gate.error.classList.add("hidden")
-
-        matchId = `${slugify(sportName)}-${slugify(panitiaName)}-${Date.now()}`
-        matchRef = db.ref(`matches/${matchId}`)
-
-        elements.panitiaLabel.textContent = panitiaName
-        elements.gameType.textContent = sportName.toUpperCase()
-        elements.gameTypeDisplay.textContent = sportName.toUpperCase()
-        elements.teamAName.textContent = teamA.toUpperCase()
-        elements.teamBName.textContent = teamB.toUpperCase()
-
-        gate.screen.classList.add("hidden")
-        elements.controlScreen.classList.remove("hidden")
-        elements.controlScreen.classList.add("flex")
-
-        setTimeToInput()
-        updateRoundDisplay()
-        pushState("live")
-        listenMatch()
-      })
-
-      function listenMatch() {
-        matchRef.on("value", (snap) => {
-          const data = snap.val()
-          if (!data) return
-          suppressWrite = true
-          scoreA = data.scoreA ?? 0
-          scoreB = data.scoreB ?? 0
-          totalSeconds = data.totalSeconds ?? 0
-          isPaused = data.isPaused ?? true
-          elements.scoreA.textContent = scoreA
-          elements.scoreB.textContent = scoreB
-          updateTimerDisplay()
-          suppressWrite = false
-        })
+      function updateRoundDisplay() {
+        elements.roundDisplayText.textContent = `Babak ${elements.roundInput.value || 1}`
       }
-
-      db.ref(".info/connected").on("value", (snap) => {
-        if (snap.val() === true) {
-          elements.connDot.className = "conn-dot bg-emerald-500"
-          elements.connText.textContent = "Terhubung (Live)"
-        } else {
-          elements.connDot.className = "conn-dot bg-red-500"
-          elements.connText.textContent = "Terputus"
-        }
-      })
 
       function pushState(status) {
         if (suppressWrite || !matchRef) return
@@ -379,32 +212,52 @@
         })
       }
 
-      const updateRoundDisplay = () => {
-        elements.roundDisplayText.textContent = `Babak ${elements.roundInput.value || 1}`
+      function listenMatch() {
+        matchRef.on("value", (snap) => {
+          const data = snap.val()
+          if (!data) return
+          suppressWrite = true
+          scoreA = data.scoreA ?? 0
+          scoreB = data.scoreB ?? 0
+          totalSeconds = data.totalSeconds ?? 0
+          isPaused = data.isPaused ?? true
+          elements.scoreA.textContent = scoreA
+          elements.scoreB.textContent = scoreB
+          updateTimerDisplay()
+          suppressWrite = false
+        })
       }
 
-      window.updateScore = (team, points) => {
-        const isTeamA = team === "a"
-        const scoreDisplay = isTeamA ? elements.scoreA : elements.scoreB
-        if (isTeamA) {
-          scoreA = Math.max(0, scoreA + points)
-          scoreDisplay.textContent = scoreA
-        } else {
-          scoreB = Math.max(0, scoreB + points)
-          scoreDisplay.textContent = scoreB
+      gate.startBtn.addEventListener("click", () => {
+        const panitiaName = gate.panitia.value.trim()
+        const sportName = gate.sport.value.trim()
+        const teamA = gate.teamA.value.trim() || "TIM A"
+        const teamB = gate.teamB.value.trim() || "TIM B"
+        if (!panitiaName || !sportName) {
+          gate.error.classList.remove("hidden")
+          return
         }
-        scoreDisplay.classList.add("score-update-animation")
-        setTimeout(() => scoreDisplay.classList.remove("score-update-animation"), 300)
+        gate.error.classList.add("hidden")
+        matchId = `${slugify(sportName)}-${slugify(panitiaName)}-${Date.now()}`
+        matchRef = db.ref(`matches/${matchId}`)
+        elements.panitiaLabel.textContent = panitiaName
+        elements.gameType.textContent = sportName.toUpperCase()
+        elements.gameTypeDisplay.textContent = sportName.toUpperCase()
+        elements.teamAName.textContent = teamA.toUpperCase()
+        elements.teamBName.textContent = teamB.toUpperCase()
+        gate.screen.classList.add("hidden")
+        elements.controlScreen.classList.remove("hidden")
+        elements.controlScreen.classList.add("flex")
+        setTimeToInput()
+        updateRoundDisplay()
         pushState("live")
-      }
+        listenMatch()
+      })
 
-      const formatTime = (seconds) =>
-        `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`
-      const updateTimerDisplay = () => {
-        elements.timer.textContent = formatTime(totalSeconds)
-      }
+      const formatTime = (seconds) => `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`
+      function updateTimerDisplay() { elements.timer.textContent = formatTime(totalSeconds) }
 
-      const setTimeToInput = () => {
+      function setTimeToInput() {
         clearInterval(timerInterval)
         isPaused = true
         elements.startPauseBtn.textContent = "MULAI"
@@ -414,7 +267,7 @@
         pushState("live")
       }
 
-      const tick = () => {
+      function tick() {
         if (totalSeconds <= 0) {
           clearInterval(timerInterval)
           elements.startPauseBtn.textContent = "SELESAI"
@@ -427,7 +280,7 @@
         pushState("live")
       }
 
-      const toggleTimer = () => {
+      function toggleTimer() {
         if (isPaused) {
           if (totalSeconds > 0) {
             isPaused = false
@@ -444,38 +297,14 @@
         pushState("live")
       }
 
-      const resetGame = () => {
-        if (confirm("reset pertandingan ke awal ?")) {
-          scoreA = 0
-          scoreB = 0
-          elements.scoreA.textContent = 0
-          elements.scoreB.textContent = 0
-          updateRoundDisplay()
-          setTimeToInput()
-          pushState("live")
-        }
-      }
-
-      const finishGame = () => {
-        if (confirm("Akhiri pertandingan ini dan simpan hasil akhir ke riwayat?")) {
-          clearInterval(timerInterval)
-          isPaused = true
-          const result = {
-            sport: elements.gameType.textContent,
-            panitia: elements.panitiaLabel.textContent,
-            round: elements.roundInput.value || 1,
-            teamAName: elements.teamAName.textContent,
-            teamBName: elements.teamBName.textContent,
-            scoreA,
-            scoreB,
-            finishedAt: Date.now(),
-          }
-          historyRef.push(result)
-          pushState("finished")
-          matchRef.off()
-          matchRef.remove()
-          resetToGate()
-        }
+      function updateScore(team, points) {
+        const isTeamA = team === "a"
+        const scoreDisplay = isTeamA ? elements.scoreA : elements.scoreB
+        if (isTeamA) { scoreA = Math.max(0, scoreA + points); scoreDisplay.textContent = scoreA }
+        else { scoreB = Math.max(0, scoreB + points); scoreDisplay.textContent = scoreB }
+        scoreDisplay.classList.add("score-update-animation")
+        setTimeout(() => scoreDisplay.classList.remove("score-update-animation"), 300)
+        pushState("live")
       }
 
       function resetToGate() {
@@ -486,74 +315,84 @@
         totalSeconds = 0
         isPaused = true
         clearInterval(timerInterval)
-
         gate.panitia.value = ""
         gate.sport.value = ""
         gate.teamA.value = ""
         gate.teamB.value = ""
         gate.error.classList.add("hidden")
-
         elements.controlScreen.classList.add("hidden")
         elements.controlScreen.classList.remove("flex")
         gate.screen.classList.remove("hidden")
         gate.panitia.focus()
       }
 
-      const openHistoryModal = () => {
-        elements.historyList.innerHTML = "Memuat..."
-        elements.historyModal.classList.remove("hidden")
-        elements.historyModal.classList.add("flex")
-        historyRef
-          .orderByChild("finishedAt")
-          .limitToLast(50)
-          .once("value", (snap) => {
-            const items = []
-            snap.forEach((child) => items.push(child.val()))
-            items.reverse()
-            if (items.length === 0) {
-              elements.historyList.innerHTML = '<p class="text-slate-400">Belum ada riwayat pertandingan.</p>'
-              return
-            }
-            elements.historyList.innerHTML = items
-              .map((it) => {
-                const date = new Date(it.finishedAt).toLocaleString("id-ID")
-                const winner =
-                  it.scoreA > it.scoreB ? it.teamAName : it.scoreB > it.scoreA ? it.teamBName : "Seri"
-                return `<div class="border border-slate-200 rounded-xl p-3">
-                  <div class="text-xs text-slate-400">${date} · ${it.sport} · Babak ${it.round} · Panitia: ${it.panitia || "-"}</div>
-                  <div class="flex justify-between items-center mt-1 font-bold text-slate-800">
-                    <span>${it.teamAName}</span>
-                    <span class="text-xl">${it.scoreA} - ${it.scoreB}</span>
-                    <span>${it.teamBName}</span>
-                  </div>
-                  <div class="text-xs text-emerald-600 font-semibold mt-1">Pemenang: ${winner}</div>
-                </div>`
-              })
-              .join("")
-          })
+      function finishGame() {
+        if (confirm("Akhiri pertandingan ini dan simpan hasil akhir ke riwayat?")) {
+          clearInterval(timerInterval)
+          isPaused = true
+          const result = {
+            sport: elements.gameType.textContent,
+            panitia: elements.panitiaLabel.textContent,
+            round: parseInt(elements.roundInput.value || 1),
+            teamAName: elements.teamAName.textContent,
+            teamBName: elements.teamBName.textContent,
+            scoreA: Number(scoreA),
+            scoreB: Number(scoreB),
+            finishedAt: Date.now(),
+            finishedAtText: new Date().toISOString(),
+          }
+          historyRef.push(result)
+          pushState("finished")
+          if (matchRef) {
+            matchRef.off()
+            matchRef.remove()
+          }
+          resetToGate()
+        }
       }
 
-      window.closeHistoryModal = () => {
+      function openHistoryModal() {
+        historyRef.orderByChild("finishedAt").limitToLast(50).once("value", (snap) => {
+          const items = []
+          snap.forEach((child) => items.push(child.val()))
+          items.reverse()
+          if (items.length === 0) {
+            elements.historyList.innerHTML = '<p class="text-slate-400">Belum ada riwayat pertandingan.</p>'
+          } else {
+            elements.historyList.innerHTML = items.map((it) => {
+              const date = new Date(it.finishedAt || it.finishedAtMs || Date.now()).toLocaleString("id-ID")
+              const winner = it.scoreA > it.scoreB ? it.teamAName : it.scoreB > it.scoreA ? it.teamBName : "Seri"
+              return `<div class="border border-slate-200 rounded-xl p-3"><div class="text-xs text-slate-400">${date} · ${it.sport} · Babak ${it.round}</div><div class="flex justify-between items-center mt-1 font-bold text-slate-800"><span>${it.teamAName}</span><span class="text-xl">${it.scoreA} - ${it.scoreB}</span><span>${it.teamBName}</span></div><div class="text-xs text-emerald-600 font-semibold mt-1">Pemenang: ${winner}</div></div>`
+            }).join("")
+          }
+          elements.historyModal.classList.remove("hidden")
+          elements.historyModal.classList.add("flex")
+        })
+      }
+
+      function closeHistoryModal() {
         elements.historyModal.classList.add("hidden")
         elements.historyModal.classList.remove("flex")
       }
 
+      db.ref(".info/connected").on("value", (snap) => {
+        if (snap.val() === true) { elements.connDot.className = "conn-dot bg-emerald-500"; elements.connText.textContent = "Terhubung (Live)" }
+        else { elements.connDot.className = "conn-dot bg-red-500"; elements.connText.textContent = "Terputus" }
+      })
+
       elements.startPauseBtn.addEventListener("click", toggleTimer)
-      elements.resetBtn.addEventListener("click", resetGame)
+      elements.resetBtn.addEventListener("click", () => { if (confirm("reset pertandingan ke awal ?")) { scoreA = 0; scoreB = 0; elements.scoreA.textContent = 0; elements.scoreB.textContent = 0; updateRoundDisplay(); setTimeToInput(); pushState("live") } })
       elements.finishBtn.addEventListener("click", finishGame)
       elements.finishBtn.addEventListener("dblclick", openHistoryModal)
       elements.minutesInput.addEventListener("input", setTimeToInput)
       elements.secondsInput.addEventListener("input", setTimeToInput)
-      elements.roundInput.addEventListener("input", () => {
-        updateRoundDisplay()
-        pushState("live")
-      })
+      elements.roundInput.addEventListener("input", () => { updateRoundDisplay(); pushState("live") })
       elements.teamAName.addEventListener("input", () => pushState("live"))
       elements.teamBName.addEventListener("input", () => pushState("live"))
-      elements.gameType.addEventListener("input", () => {
-        elements.gameTypeDisplay.textContent = elements.gameType.textContent
-        pushState("live")
-      })
+      elements.gameType.addEventListener("input", () => { elements.gameTypeDisplay.textContent = elements.gameType.textContent; pushState("live") })
+
+      window.updateScore = updateScore
+      window.closeHistoryModal = closeHistoryModal
     </script>
   </body>
 </html>
