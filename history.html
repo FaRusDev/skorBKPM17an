@@ -62,7 +62,20 @@
         <p class="text-slate-400 mt-2">Riwayat akan muncul otomatis setelah panitia mengakhiri pertandingan.</p>
       </div>
 
-      <div id="history-container" class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6"></div>
+      <div class="overflow-x-auto rounded-3xl border border-slate-200 bg-white/90 shadow-2xl">
+        <table class="min-w-full divide-y divide-slate-200 text-left">
+          <thead class="bg-slate-50">
+            <tr>
+              <th class="px-4 py-3 text-xs font-bold uppercase tracking-[0.2em] text-slate-500">Pertandingan</th>
+              <th class="px-4 py-3 text-xs font-bold uppercase tracking-[0.2em] text-slate-500">Panitia</th>
+              <th class="px-4 py-3 text-xs font-bold uppercase tracking-[0.2em] text-slate-500">Skor</th>
+              <th class="px-4 py-3 text-xs font-bold uppercase tracking-[0.2em] text-slate-500">Pemenang</th>
+              <th class="px-4 py-3 text-xs font-bold uppercase tracking-[0.2em] text-slate-500">Tanggal</th>
+            </tr>
+          </thead>
+          <tbody id="history-container" class="divide-y divide-slate-100 bg-white"></tbody>
+        </table>
+      </div>
     </main>
 
     <script>
@@ -112,49 +125,21 @@
 
         emptyState.classList.add("hidden")
 
-        items.forEach((item) => {
-          const card = document.createElement("article")
-          card.className = "history-card overflow-hidden rounded-3xl bg-white/95 shadow-2xl ring-1 ring-slate-200"
-          card.innerHTML = `
-            <div class="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
-              <div>
-                <p class="text-xs font-bold uppercase tracking-[0.25em] text-slate-400">${item.sport || "-"}</p>
-                <h2 class="text-lg sm:text-xl font-extrabold text-slate-800 truncate">${item.teamAName || "TIM A"} vs ${item.teamBName || "TIM B"}</h2>
-              </div>
-              <div class="text-right">
-                <div class="text-xs font-semibold text-slate-400">${toDateLabel(item.finishedAt || Date.now())}</div>
-                <div class="text-xs font-bold ${getWinner(item) === "Seri" ? "text-slate-500" : "text-emerald-600"}">Pemenang: ${getWinner(item)}</div>
-              </div>
-            </div>
-            <div class="p-5">
-              <div class="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-3 items-stretch">
-                <div class="rounded-3xl bg-blue-600 p-4 text-center text-white shadow-lg">
-                  <div class="text-xs font-bold uppercase tracking-[0.2em] opacity-80">Tim A</div>
-                  <div class="mt-2 text-xl sm:text-2xl font-extrabold truncate">${item.teamAName || "TIM A"}</div>
-                  <div class="mt-4 text-5xl sm:text-6xl font-black leading-none">${item.scoreA ?? 0}</div>
-                </div>
-                <div class="flex items-center justify-center rounded-3xl bg-slate-50 px-5 py-4 text-center">
-                  <div>
-                    <div class="text-sm font-bold text-slate-500">Babak ${item.round || 1}</div>
-                    <div class="mt-2 text-3xl sm:text-4xl font-black text-slate-800">${item.scoreA ?? 0} - ${item.scoreB ?? 0}</div>
-                    <div class="mt-2 text-sm font-semibold text-slate-400">Skor akhir</div>
-                  </div>
-                </div>
-                <div class="rounded-3xl bg-emerald-600 p-4 text-center text-white shadow-lg">
-                  <div class="text-xs font-bold uppercase tracking-[0.2em] opacity-80">Tim B</div>
-                  <div class="mt-2 text-xl sm:text-2xl font-extrabold truncate">${item.teamBName || "TIM B"}</div>
-                  <div class="mt-4 text-5xl sm:text-6xl font-black leading-none">${item.scoreB ?? 0}</div>
-                </div>
-              </div>
-              <div class="mt-4 rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-600">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  <div><span class="font-bold text-slate-500">Panitia:</span> ${item.panitia || "-"}</div>
-                  <div><span class="font-bold text-slate-500">Tanggal:</span> ${toDateLabel(item.finishedAt || Date.now())}</div>
-                </div>
-              </div>
-            </div>
+        items.forEach((item, index) => {
+          const row = document.createElement("tr")
+          const winner = getWinner(item)
+          row.className = "history-card hover:bg-slate-50"
+          row.innerHTML = `
+            <td class="px-4 py-4 align-top">
+              <div class="font-extrabold text-slate-800">${item.teamAName || "TIM A"} vs ${item.teamBName || "TIM B"}</div>
+              <div class="text-xs text-slate-400 mt-1">${item.sport || "-"} · Babak ${item.round || 1}</div>
+            </td>
+            <td class="px-4 py-4 align-top text-sm text-slate-600">${item.panitia || "-"}</td>
+            <td class="px-4 py-4 align-top text-sm font-extrabold text-slate-800">${item.scoreA ?? 0} - ${item.scoreB ?? 0}</td>
+            <td class="px-4 py-4 align-top text-sm font-bold ${winner === "Seri" ? "text-slate-500" : "text-emerald-600"}">${winner}</td>
+            <td class="px-4 py-4 align-top text-sm text-slate-600 whitespace-nowrap">${toDateLabel(item.finishedAt || Date.now())}</td>
           `
-          historyContainer.appendChild(card)
+          historyContainer.appendChild(row)
         })
       }
 
