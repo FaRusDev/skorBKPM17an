@@ -74,7 +74,7 @@
       const container = document.getElementById("cards-container")
       const emptyState = document.getElementById("empty-state")
       const historyContainer = document.getElementById("history-container")
-      const historyShort = document.getElementById("history-short")
+      let historyShort = document.getElementById("history-short")
       const lastScores = {}
       const formatTime = (seconds) => `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`
 
